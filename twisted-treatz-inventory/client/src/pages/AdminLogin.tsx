@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { adminLogin } from "../api/adminClient";
 import { useAdminAuth } from "../hooks/useAdminAuth";
+import DemoBanner from "../components/DemoBanner";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
@@ -41,6 +42,12 @@ export default function AdminLogin() {
               Sign in to the Twisted Treatz admin
             </p>
           </div>
+
+          <DemoBanner className="mb-5">
+            <span className="font-semibold">Demo site</span> — sign in with{" "}
+            <code className="font-mono">demo@twistedtreatz.com</code> /{" "}
+            <code className="font-mono">demo1234</code>. All data is fake.
+          </DemoBanner>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>

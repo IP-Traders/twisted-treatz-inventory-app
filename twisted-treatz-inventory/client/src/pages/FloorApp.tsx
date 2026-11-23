@@ -10,6 +10,7 @@ import {
 } from "../api/client";
 import MemberSelect from "../components/floor/MemberSelect";
 import PinPad from "../components/floor/PinPad";
+import DemoBanner from "../components/DemoBanner";
 import ProductGrid from "../components/floor/ProductGrid";
 import ConfirmBar from "../components/floor/ConfirmBar";
 import SuccessAnimation from "../components/floor/SuccessAnimation";
@@ -237,6 +238,11 @@ export default function FloorApp() {
           </>
         )}
       </header>
+
+      <DemoBanner className="rounded-none border-x-0 flex-shrink-0">
+        Demo site — all data is fake. Tap any member and use PIN{" "}
+        <span className="font-mono font-semibold">1234</span>.
+      </DemoBanner>
 
       {/* Idle countdown indicator */}
       {idleCountdown !== null && (
