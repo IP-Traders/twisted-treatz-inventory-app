@@ -43,6 +43,9 @@ export interface AdminProduct {
   unitPrice: string | null;
   active: boolean;
   highRisk: boolean;
+  // Variations: set via the Grouping sheet round-trip, read-only in the UI.
+  variant: string | null;
+  group: { id: number; name: string; variantLabel: string } | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -506,10 +509,12 @@ export async function importThresholds(
   });
 }
 
-// ─── Catalog import (Hani's master sheet) ─────────────────────────
-// Ingests Item/Category/Qty/Pack Size/UOM/Brand rows: creates products we
-// don't have, updates catalog fields on the ones we do, and routes the
-// counted Qty through an audited Adjustment. Always preview before apply.
+// ─── Excel Sheet (Hani's master product sheet) ────────────────────
+// Ingests Item/Category/Qty/Pack Size/UOM/Brand/Supplier/Alert Threshold
+// rows: creates products we don't have, updates catalog fields on the ones
+// we do, and routes the counted Qty through an audited Adjustment. Blank
+// cells never overwrite (except Qty, which follows the empty→0 rule).
+// Always preview before apply.
 
 export type CatalogMissingField = "qty" | "packSize" | "uom" | "brand";
 
@@ -520,6 +525,8 @@ export interface CatalogImportRow {
   packSize?: number | null;
   uom?: string | null;
   qty?: number | null;
+  supplier?: string | null;
+  alertThreshold?: number | null;
 }
 
 export interface CatalogCreate {
@@ -529,6 +536,8 @@ export interface CatalogCreate {
   packSize: number | null;
   uom: string | null;
   qty: number;
+  supplier: string | null;
+  alertThreshold: number | null;
   missing: CatalogMissingField[];
 }
 
@@ -582,9 +591,9 @@ export interface CatalogImportResult {
   summary: CatalogImportSummary;
 }
 
-// Pre-filled import template: every active product in the exact columns the
-// importer reads back (Item, Category, Qty, Pack Size, UOM, Brand). Edit in
-// place and re-upload — untouched rows come back as "unchanged".
+// The master product sheet (CSV — Excel opens it fine): every active
+// product in the exact columns the importer reads back. Edit in place and
+// re-upload — untouched rows come back as "unchanged".
 export async function exportCatalogCsv(
   token: string
 ): Promise<{ csv: string; productCount: number; exportedAt: string }> {
@@ -602,6 +611,75 @@ export async function importCatalog(
   return adminFetch<CatalogImportResult>("/api/v1/catalog/import", token, {
     method: "POST",
     body: JSON.stringify({ rows, dryRun }),
+  });
+}
+
+// ─── Product grouping (variations) ─────────────────────────────────
+// Round-trip for the Grouping sheet: fold flavors/sizes under one parent
+// item. Import matches by Product ID; blank Group means "stands alone".
+
+export interface GroupingImportRow {
+  id: number;
+  group?: string | null;
+  variation?: string | null;
+  discontinued?: string | null;
+}
+
+export interface GroupingGroupMeta {
+  group: string;
+  category?: string | null;
+  variantLabel?: string | null;
+}
+
+export interface GroupingImportResult {
+  dryRun: boolean;
+  groupChanges: {
+    id: number;
+    item: string;
+    fromGroup: string | null;
+    toGroup: string | null;
+    fromVariant: string | null;
+    toVariant: string | null;
+  }[];
+  categoryChanges: { id: number; item: string; from: string; to: string }[];
+  deactivations: { id: number; item: string; qtyOnHand: number }[];
+  newGroups: string[];
+  labelChanges: { group: string; from: string; to: string }[];
+  skipped: { row: number; id: number | null; reason: string }[];
+  applyFailures: { id: number | null; item: string; reason: string }[];
+  unchanged: number;
+  groupsDeleted: number;
+  summary: {
+    grouped: number;
+    ungrouped: number;
+    newGroups: number;
+    categoryChanges: number;
+    deactivations: number;
+    deactivationsWithStock: number;
+    unchanged: number;
+    errors: number;
+    failed: number;
+  };
+}
+
+export async function exportGroupingCsv(
+  token: string
+): Promise<{ csv: string; productCount: number; exportedAt: string }> {
+  return adminFetch<{ csv: string; productCount: number; exportedAt: string }>(
+    "/api/v1/groups/export",
+    token
+  );
+}
+
+export async function importGrouping(
+  token: string,
+  rows: GroupingImportRow[],
+  groups: GroupingGroupMeta[],
+  dryRun: boolean
+): Promise<GroupingImportResult> {
+  return adminFetch<GroupingImportResult>("/api/v1/groups/import", token, {
+    method: "POST",
+    body: JSON.stringify({ rows, groups, dryRun }),
   });
 }
 

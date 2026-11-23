@@ -56,6 +56,13 @@ export function createMockPrisma() {
       create: vi.fn(),
       findFirst: vi.fn(),
     },
+productGroup: {
+      findMany: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      upsert: vi.fn(),
+      deleteMany: vi.fn(),
+    },
     // Array form runs all queued promises; callback form (interactive
     // transaction) runs the callback with this same mock as the tx client.
     $transaction: vi.fn(),
