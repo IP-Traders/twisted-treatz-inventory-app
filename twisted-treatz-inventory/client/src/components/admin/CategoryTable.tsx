@@ -24,7 +24,7 @@ type SortField =
 type Status = "out" | "low" | "ok" | "inactive";
 const STATUS_RANK: Record<Status, number> = { out: 0, low: 1, ok: 2, inactive: 3 };
 
-export function formatPackSize(product: AdminProduct): string | null {
+function formatPackSize(product: AdminProduct): string | null {
   if (product.packSize === null) return null;
   const size = Number(product.packSize);
   if (isNaN(size)) return null;

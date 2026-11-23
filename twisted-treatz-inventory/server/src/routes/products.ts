@@ -210,11 +210,11 @@ router.post("/", requireAdmin, async (req: AdminRequest, res: Response) => {
     let threshold = 10;
     if (alertThreshold !== undefined && alertThreshold !== null) {
       threshold = Number(alertThreshold);
-      if (isNaN(threshold) || threshold < 0) {
+      if (isNaN(threshold) || threshold < 0 || !Number.isInteger(threshold)) {
         res.status(400).json({
           success: false,
           data: null,
-          error: "alertThreshold must be a non-negative number",
+          error: "alertThreshold must be a non-negative integer",
         });
         return;
       }
@@ -414,11 +414,11 @@ router.patch("/:id", requireAdmin, async (req: AdminRequest, res: Response) => {
     // Validate alertThreshold if provided
     if (updateData.alertThreshold !== undefined) {
       const threshold = Number(updateData.alertThreshold);
-      if (isNaN(threshold) || threshold < 0) {
+      if (isNaN(threshold) || threshold < 0 || !Number.isInteger(threshold)) {
         res.status(400).json({
           success: false,
           data: null,
-          error: "alertThreshold must be a non-negative number",
+          error: "alertThreshold must be a non-negative integer",
         });
         return;
       }

@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
-import AdminSidebar, { ADMIN_TABS, type AdminTab } from "./AdminSidebar";
+import AdminSidebar from "./AdminSidebar";
+import { ADMIN_TABS, type AdminTab } from "./adminTabs";
 
 // ─── Admin page frame ────────────────────────────────────────────────
 // Desktop (lg+, ≥1024px): the sidebar sits beside the content as before.
